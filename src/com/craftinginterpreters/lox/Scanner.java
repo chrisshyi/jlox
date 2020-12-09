@@ -54,6 +54,16 @@ public class Scanner {
                 } else {
                     addToken(SLASH);
                 }
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+            case '\n':
+                line++;
+                break;
+            case '"':
+                string();
+                break;
             default:
                 Lox.error(line, "Unexpected character.");
                 break;
@@ -85,5 +95,23 @@ public class Scanner {
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
+    }
+
+    private void string() {
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') {
+                line++;
+            }
+            advance();
+        }
+        if (isAtEnd()) {
+            Lox.error(line, "unterminated string.");
+            return;
+        }
+        // Consume the closing "
+        advance();
+        // Trim the surrounding quotes.
+        String value = source.substring(start + 1, current - 1);
+        addToken(STRING, value);
     }
 }
